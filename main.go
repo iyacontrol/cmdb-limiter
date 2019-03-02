@@ -3,6 +3,9 @@ package main
 import (
 	"log"
 	"net"
+	"os"
+	"runtime"
+	"strconv"
 	"time"
 
 	rls "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2"
@@ -48,5 +51,14 @@ func main() {
 	reflection.Register(s)
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
+	}
+}
+
+func init() {
+	cpus := os.Getenv("CPUS")
+	if int, err := strconv.Atoi(cpus); err != nil {
+		runtime.GOMAXPROCS(int)
+	} else {
+		runtime.GOMAXPROCS(runtime.NumCPU())
 	}
 }
