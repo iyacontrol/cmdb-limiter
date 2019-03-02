@@ -9,9 +9,11 @@ import (
 	"time"
 
 	rls "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"github.com/juju/ratelimit"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -44,6 +46,10 @@ func main() {
 
 	// create a gRPC server and register the RateLimitService server
 	s := grpc.NewServer()
+
+	hsrv := health.NewServer()
+	hsrv.SetServingStatus("", healthpb.HealthCheckResponse_SERVING)
+	healthpb.RegisterHealthServer(s, hsrv)
 
 	rls.RegisterRateLimitServiceServer(s, &server{
 		bucket: ratelimit.NewBucket(100*time.Microsecond, 100),
